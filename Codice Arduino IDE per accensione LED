@@ -1,0 +1,59 @@
+
+
+int ledrosso = 12;
+int ledverde = 11;
+int ledgiallo = 10;
+int ledblu = 9;
+int redrossopiccolo = 2;
+
+
+void setup() {
+  pinMode(ledrosso, OUTPUT);
+  pinMode(ledverde, OUTPUT);
+  pinMode(ledgiallo, OUTPUT);
+  pinMode(ledblu, OUTPUT);
+  pinMode(redrossopiccolo, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    char incomingByte = Serial.read();
+    if (incomingByte == '1') {
+      digitalWrite(ledrosso, HIGH);
+      digitalWrite(ledverde, LOW);
+    	digitalWrite(ledgiallo, LOW);
+	    digitalWrite(ledblu, LOW);
+	    digitalWrite(redrossopiccolo, LOW);
+    } else 
+        if (incomingByte == '2') {
+      digitalWrite(ledrosso, LOW);
+      digitalWrite(ledverde, HIGH);
+    	digitalWrite(ledgiallo, LOW);
+	    digitalWrite(ledblu, LOW);
+	    digitalWrite(redrossopiccolo, LOW);
+          } else 
+        if (incomingByte == '3') {
+      digitalWrite(ledrosso, LOW);
+      digitalWrite(ledverde, LOW);
+    	digitalWrite(ledgiallo, HIGH);
+	    digitalWrite(ledblu, LOW);
+	    digitalWrite(redrossopiccolo, LOW);
+	          } else 
+        if (incomingByte == '4') {
+      digitalWrite(ledrosso, LOW);
+      digitalWrite(ledverde, LOW);
+    	digitalWrite(ledgiallo, LOW);
+	    digitalWrite(ledblu, HIGH);
+	    digitalWrite(redrossopiccolo, LOW);
+		          } else 
+        if (incomingByte == '5') {
+      digitalWrite(ledrosso, LOW);
+      digitalWrite(ledverde, LOW);
+    	digitalWrite(ledgiallo, LOW);
+	    digitalWrite(ledblu, LOW);
+	    digitalWrite(redrossopiccolo, HIGH);
+        
+    }
+  }
+}
