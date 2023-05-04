@@ -1,0 +1,83 @@
+import time
+import pymysql
+import os
+
+numerorosso = 1
+numeroverde = 2
+numerogiallo = 3
+numerobianco = 4
+numerossopiccolo = 5
+
+def connect_to_database():
+    connection = pymysql.connect(
+        host='localhost',
+        user='esp',
+        password='32',
+        database='oggetti',
+        port=3306
+    )
+    return connection
+
+def close_database_connection(connection):
+    connection.close()
+
+def create_cursor(connection):
+    cursor = connection.cursor()
+    return cursor
+
+def update_database():
+    connection = connect_to_database()
+    cursor = create_cursor(connection)
+
+    cursor.execute("SELECT MAX(id) FROM nomi")
+    result = cursor.fetchone()
+    if result[0] is not None:
+        last_id = result[0]
+    else:
+        last_id = 0
+
+    cursor.execute("SELECT id, nome, elaborato FROM nomi WHERE id = %s", (last_id,))
+    result = cursor.fetchone()
+    if result is not None:
+        id = result[0]
+        nome = result[1]
+        elaborato = result[2]
+        if elaborato == 0:
+            if nome == "telecomando":
+                command = 'echo ' + str(numerorosso) + ' > COM3'
+                os.system(command)
+                print("Acceso LED Rosso")
+                cursor.execute("UPDATE nomi SET elaborato = 1 WHERE id = %s", (id,))
+                connection.commit()
+            elif nome == "cuffiette":
+                command = 'echo ' + str(numeroverde) + ' > COM3'
+                os.system(command)
+                print("Acceso LED Verde")
+                cursor.execute("UPDATE nomi SET elaborato = 1 WHERE id = %s", (id,))
+                connection.commit()
+            elif nome == "pennarello":
+                command = 'echo ' + str(numerogiallo) + ' > COM3'
+                os.system(command)
+                print("Acceso LED Giallo")
+                cursor.execute("UPDATE nomi SET elaborato = 1 WHERE id = %s", (id,))
+                connection.commit()
+            elif nome == "carica":
+                command = 'echo ' + str(numerobianco) + ' > COM3'
+                os.system(command)
+                print("Acceso LED Bianco")
+                cursor.execute("UPDATE nomi SET elaborato = 1 WHERE id = %s", (id,))
+                connection.commit()
+            elif nome == "vuoto":
+                command = 'echo ' + str(numerossopiccolo) + ' > COM3'
+                os.system(command)
+                print("Acceso LED Rosso Piccolo")
+                cursor.execute("UPDATE nomi SET elaborato = 1 WHERE id = %s", (id,))
+                connection.commit()
+            else:
+                print("Nessuna corrispondenza trovata")
+            time.sleep(1)
+        last_id = id
+
+    connection.close()
+
+update_database()
