@@ -1,0 +1,90 @@
+
+#include <esp32_inferencing.h>
+#include "esp32cam.h"
+#include "esp32cam/tinyml/edgeimpulse/FOMO.h"
+#include <WiFi.h>
+#include <HTTPClient.h>
+
+const char ssid[] = "WIFI";
+const char password[] = "PASSWORD";
+
+String HOST_NAME = "ip local server";
+String PHP_FILE_NAME = "/inseriscioggetto.php";
+String objQuery = "?objects="; // definisci e inizializza objQuery
+String vuoto = "vuoto"; // definisci e inizializza objQuery
+
+
+using namespace Eloquent::Esp32cam;
+
+Cam cam;
+TinyML::EdgeImpulse::FOMO fomo;
+HTTPClient http; // definisci l'oggetto HTTPClient all'inizio del codice
+
+void setup() {
+    Serial.begin(115200);
+    delay(3000);
+    Serial.println("Init");
+
+    // Connessione WiFi
+    WiFi.begin(ssid, password);
+    Serial.printf("Connecting to %s...", ssid);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.printf("Connected to %s\n", ssid);
+
+    cam.aithinker();
+    cam.highQuality();
+    cam.highestSaturation();
+    cam.vga();
+
+    while (!cam.begin())
+        Serial.println(cam.getErrorMessage());
+}
+
+void loop() {
+    if (!cam.capture()) {
+        Serial.println(cam.getErrorMessage());
+        delay(1000);
+        return;
+    }
+
+    if (!fomo.detectObjects(cam)) {
+        Serial.println(fomo.getErrorMessage());
+        delay(1000);
+        return;
+    }
+
+   if (fomo.hasObjects()) {
+    fomo.forEach([](size_t ix, ei_impulse_result_bounding_box_t bbox) {
+        String objectName = bbox.label;
+        objectName.replace(" ", "%20");
+        String server = HOST_NAME + PHP_FILE_NAME + objQuery + objectName;
+        Serial.println(server);
+        http.begin(server); 
+        int httpCode = http.GET();
+         delay(1500);
+
+        if (httpCode > 0) {
+            String payload = http.getString();
+            Serial.println(payload);
+        } else {
+            Serial.printf("HTTP GET... code: %d\n", httpCode);
+        }
+ 
+        http.end(); // chiudi la connessione HTTP dopo aver ricevuto la risposta
+    });
+} else {
+    Serial.println("No objects detected");
+        String server = HOST_NAME + PHP_FILE_NAME + objQuery + vuoto;
+        Serial.println(server);
+        http.begin(server); 
+        int httpCode = http.GET();
+    
+    delay(1500);
+
+   
+  }
+
+}
